@@ -49,16 +49,77 @@ data = data %>% mutate(diff = abs(data$avg_M-data$avg_F), indicador = ifelse(avg
 
 # Plotando o gráfico
 
+f <- list(
+  family = "Times New Roman",
+  size = 24,
+  color = "#7f7f7f"
+)
+
+x <- list(
+  title = "Masculino",
+  titlefont = f,
+  showgrid = FALSE
+)
+y <- list(
+  title = "Feminino",
+  titlefont = f,
+  showgrid = FALSE
+)
+
 p <- plot_ly(data, x = ~n.y , y = ~n.x, 
              text = ~paste("Curso: ", curso, "Diferença: ", round(diff, 3)), type = 'scatter', mode = 'markers',
              marker = list(size = ~2*diff, opacity = 0.5, color = ~indicador)) %>%
   layout(title = 'Diferença de notas entre homens e mulheres por curso',
-         xaxis = list(showgrid = FALSE),
-         yaxis = list(showgrid = FALSE))
+         xaxis = x,
+         yaxis = y)
 
-chart_link = api_create(p, filename="diff_notas")
-chart_link
+p
+
+#chart_link = api_create(p, filename="diff_notas")
+#chart_link
 
 # Testes de hipóteses para diferença de médias:
 
+# Teste t
+cursos_para_teste_t = data[data$n.x >= 25 & data$n.y >= 25, ]$curso
 
+p_valores_t = c(0,0,0,0,0)
+
+for(i in cursos_para_teste_t){
+  curso_M = filter(ingressantes2017nota_M, curso == i)
+  curso_F = filter(ingressantes2017nota_F, curso == i)
+  
+  rr = t.test(as.numeric(curso_M$ira),as.numeric(curso_F$ira))
+  p_valores_t = rbind(p_valores_t, c(as.numeric(curso_M$ira) %>% mean,
+                                     nrow(curso_M),
+                                     as.numeric(curso_F$ira) %>% mean, 
+                                     nrow(curso_F),
+                                     rr$p.value))
+}
+
+p_valores_t = p_valores_t[-1, ]
+rownames(p_valores_t) = cursos_para_teste_t
+p_valores_t
+
+# Teste de Mann-Whitney
+
+cursos_para_teste_mw = data[(data$n.x <= 25 & data$n.x >= 8) & (data$n.y <= 25 & data$n.y >= 8), ]$curso
+
+p_valores_mw = c(0,0,0)
+
+for(i in cursos_para_teste_mw){
+  curso_M = filter(ingressantes2017nota_M, curso == i)
+  curso_F = filter(ingressantes2017nota_F, curso == i)
+  
+  rr = wilcox.test(as.numeric(curso_M$ira),as.numeric(curso_F$ira))
+  p_valores_mw = rbind(p_valores_mw, c(as.numeric(curso_M$ira) %>% mean,
+                                      nrow(curso_M),
+                                      as.numeric(curso_F$ira) %>% mean, 
+                                      nrow(curso_F),
+                                      rr$p.value))
+}
+
+p_valores_mw = p_valores_mw[-1, ]
+rownames(p_valores_mw) = cursos_para_teste_mw
+
+p_valores_mw
