@@ -1,6 +1,7 @@
 library(plotly)
 library(readxl)
 library(dplyr)
+library(xtable)
 
 Sys.setenv("plotly_username"="kassio.silva")
 Sys.setenv("plotly_api_key"="0BULwdSIo8khglNH31kJ")
@@ -104,6 +105,8 @@ for(i in cursos_para_teste_t){
 
 p_valores_t = p_valores_t[-1, ]
 rownames(p_valores_t) = cursos_para_teste_t
+colnames(p_valores_t) = c("Média Homens", "N Homens", "Média Mulheres", "N Mulheres", "Valor p")
+
 p_valores_t
 
 # Teste de Mann-Whitney
@@ -126,5 +129,10 @@ for(i in cursos_para_teste_mw){
 
 p_valores_mw = p_valores_mw[-1, ]
 rownames(p_valores_mw) = cursos_para_teste_mw
-
+colnames(p_valores_mw) = c("Média Homens", "N Homens", "Média Mulheres", "N Mulheres", "Valor p")
 p_valores_mw
+
+# Tabelas para o Rmarkdown
+
+knitr::kable(p_valores_t, "markdown")
+knitr::kable(p_valores_mw, "markdown")
