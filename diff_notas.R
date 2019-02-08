@@ -66,10 +66,15 @@ y <- list(
   showgrid = FALSE
 )
 
+#Use the ideal sizeref value
+desired_maximum_marker_size <- 30
+your_list_of_size_values <- data['diff']
+sizeref <- 2.0 * max(your_list_of_size_values) / (desired_maximum_marker_size**2)
+
 p <- plot_ly(data, x = ~n.y , y = ~n.x, 
              text = ~paste("Curso: ", curso, "Diferença: ", round(diff, 3)), type = 'scatter', mode = 'markers',
-             marker = list(size = ~2*diff, opacity = 0.5, color = ~indicador)) %>%
-  layout(title = 'Diferença de notas entre homens e mulheres por curso',
+             marker = list(size = ~2*diff, opacity = 0.5, color = ~indicador, sizemode = 'area', sizeref = sizeref)) %>%
+    layout(title = 'Diferença de notas entre homens e mulheres por curso',
          xaxis = x,
          yaxis = y)
 
