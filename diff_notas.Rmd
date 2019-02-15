@@ -1,40 +1,65 @@
 ---
-title: "Desempenho médio Masculino e Feminino"
-author: "Kássio Camelo Ferreira da Silva"
-date: "8 de fevereiro de 2019"
-output: html_document
+title: "Comparação de Índice de Rendimento Acadêmico Médio entre alunos da Ufersa por sexo"
+author: "Kássio Camelo Ferreira da Silva, Proplan - Ufersa"
+date: "15 de fevereiro de 2019"
+output: 
+  html_document:
+    theme: cerulean
+    highlight: pygments
+    toc: true
+    toc_float: 
+      collapsed: false
+      smooth_scroll: true
+    toc_depth: 2
+    number_sections: true
+    includes:
+      before_body: header.html
+      after_body: footer.html
 ---
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
-## R Markdown
 
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
+```{css, echo=FALSE}
+pre {
+  white-space: pre !important;
+  overflow-y: scroll !important;
+  height: 50vh !important;
+}
+```
 
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
+***
 
-```{r cars}
+# Introdução {.tabset}
+
+Utilizando os dados dos ingressantes em 2017 na graduação da Ufersa, por sexo, foi construída a figura abaixo. 
+Foram incluídos na amostra apenas os alunos com situação ATIVA, o que exclui trancamentos, cancelamentos e outros casos.
+Nela, cada círculo representa um curso de graduação da Ufersa. No eixo x consta o número de alunos do sexo masculino na amostra, enquanto no eixo y temos a quantidade de alunas na amostra.
+Para cada curso, foi computada a diferença da média de alunos e alunas. O raio do círculo é proporcional a esta diferença. Quanto maior o círculo, maior a diferença de IRA médio entre os sexos. 
+Ainda, a cor da circunferência determina qual sexo possui maior IRA médio. Vermelho para mulheres e cinza para homens.
+
+```{r manWoman, echo=FALSE, message=FALSE, warning=FALSE, fig.align='center'}
 library(plotly)
 library(readxl)
 library(dplyr)
 library(xtable)
+library(kableExtra)
 
-Sys.setenv("plotly_username"="kassio.silva")
-Sys.setenv("plotly_api_key"="0BULwdSIo8khglNH31kJ")
-
-ingressantes2017nota_M <- read.csv("C:/Users/erica.santos/workspace/trabalho/THE_rankings/Impact Ranking/consulta_geral_discente (2).csv",
+ingressantes2017nota_M <- read.csv("./data/consulta_geral_discente (2).csv",
                                    header = TRUE, sep=";", colClasses = c("character"))
 
-ingressantes2017nota_F <- read.csv("C:/Users/erica.santos/workspace/trabalho/THE_rankings/Impact Ranking/consulta_geral_discente (3).csv",
+ingressantes2017nota_F <- read.csv("./data/consulta_geral_discente (3).csv",
                                    header = TRUE, sep=";", colClasses = c("character"))
 
 
-ingressantes2017nota_M <- filter(ingressantes2017nota_M, startsWith(ingressantes2017nota_M$matricula, '2017'))
-ingressantes2017nota_F <- filter(ingressantes2017nota_F, startsWith(ingressantes2017nota_F$matricula, '2017'))
-
-iris %>% group_by(Species) %>% summarise(avg = mean(Sepal.Length))
+ingressantes2017nota_M <- filter(ingressantes2017nota_M,
+                                 startsWith(ingressantes2017nota_M$matricula, '2017') &
+                                   ingressantes2017nota_M$status == 'ATIVO')
+ingressantes2017nota_F <- filter(ingressantes2017nota_F,
+                                 startsWith(ingressantes2017nota_F$matricula, '2017') &
+                                   ingressantes2017nota_F$status == 'ATIVO')
 
 # Notas médias dos cursos masculino
 
@@ -93,19 +118,122 @@ sizeref <- 2.0 * max(your_list_of_size_values) / (desired_maximum_marker_size**2
 p <- plot_ly(data, x = ~n.y , y = ~n.x, 
              text = ~paste("Curso: ", curso, "Diferença: ", round(diff, 3)), type = 'scatter', mode = 'markers',
              marker = list(size = ~2*diff, opacity = 0.5, color = ~indicador, sizemode = 'area', sizeref = sizeref)) %>%
-    layout(title = 'Diferença de notas entre homens e mulheres por curso',
+    layout(title = 'Ufersa - Diferença de notas entre homens e mulheres por curso',
          xaxis = x,
          yaxis = y)
+```
 
+## Gráfico
+
+<center>
+```{r trueplot, echo=FALSE}
 p
+```
+</center>
 
-#chart_link = api_create(p, filename="diff_notas")
-#chart_link
+## R
 
+```{r fakemanWoman, echo=TRUE, eval=FALSE, message=FALSE, warning=FALSE}
+library(plotly)
+library(readxl)
+library(dplyr)
+library(xtable)
+library(kableExtra)
+
+ingressantes2017nota_M <- read.csv("./data/consulta_geral_discente (2).csv",
+                                   header = TRUE, sep=";", colClasses = c("character"))
+
+ingressantes2017nota_F <- read.csv("./data/consulta_geral_discente (3).csv",
+                                   header = TRUE, sep=";", colClasses = c("character"))
+
+ingressantes2017nota_M <- filter(ingressantes2017nota_M,
+                                 startsWith(ingressantes2017nota_M$matricula, '2017') &
+                                   ingressantes2017nota_M$status == 'ATIVO')
+ingressantes2017nota_F <- filter(ingressantes2017nota_F,
+                                 startsWith(ingressantes2017nota_F$matricula, '2017') &
+                                   ingressantes2017nota_F$status == 'ATIVO')
+
+# Notas médias dos cursos masculino
+
+nota_M = ingressantes2017nota_M %>% group_by(curso)
+nota_M$ira <- as.numeric(nota_M$ira)
+nota_M$iea <- as.numeric(nota_M$iea)
+
+nota_M = nota_M %>% summarise(avg_M = mean(ira))
+nota_M = nota_M[complete.cases(nota_M), ]
+
+# Notas médias dos cursos feminino
+
+nota_F = ingressantes2017nota_F %>% group_by(curso)
+nota_F$ira <- as.numeric(nota_F$ira)
+nota_F$iea <- as.numeric(nota_F$iea)
+
+nota_F = nota_F %>% summarise(avg_F = mean(ira))
+nota_F = nota_F[complete.cases(nota_F), ]
+
+# Numero de homens por curso
+n_M <- ingressantes2017nota_M %>% group_by(curso) %>% count()
+M_nota_numero = inner_join(nota_M, n_M, by="curso")
+
+# Numero de mulheres por curso
+n_F <- ingressantes2017nota_F %>% group_by(curso) %>% count()
+F_nota_numero = inner_join(nota_F, n_F, by="curso")  
+
+data = inner_join(F_nota_numero, M_nota_numero, by="curso")
+
+data = data %>% mutate(diff = abs(data$avg_M-data$avg_F), 
+                       indicador = ifelse(avg_F > avg_M, 1, 0))
+
+# Plotando o gráfico
+
+f <- list(
+  family = "Times New Roman",
+  size = 24,
+  color = "#7f7f7f"
+)
+
+x <- list(
+  title = "Masculino",
+  titlefont = f,
+  showgrid = FALSE
+)
+y <- list(
+  title = "Feminino",
+  titlefont = f,
+  showgrid = FALSE
+)
+
+#Use the ideal sizeref value
+desired_maximum_marker_size <- 30
+your_list_of_size_values <- data['diff']
+sizeref <- 2.0 * max(your_list_of_size_values)/(desired_maximum_marker_size**2)
+
+p <- plot_ly(data, x = ~n.y , y = ~n.x, 
+             text = ~paste("Curso: ", curso, "Diferença: ", round(diff, 3)), 
+             type = 'scatter', mode = 'markers',
+             marker = list(size = ~2*diff, opacity = 0.5, 
+                           color = ~indicador, sizemode = 'area', 
+                           sizeref = sizeref)) %>%
+  layout(title = 'Ufersa - Diferença de notas entre homens e mulheres por curso',
+         xaxis = x,yaxis = y)
+```
+
+***
+
+# Teste t de Student
+
+O Teste t de Student tem como suposição de que a estatística de teste, sob $H_0$ tem distribuição Normal. Para amostras grandes, podemos utilizar o teorema central do limite. Portanto, utilizamos este teste para comparar a média das duas amostras (masculino e feminino). Assim, vamos testar a hipótese nula de que as médias dos grupos são iguais. 
+
+$$H_0: \mu_m = \mu_f$$
+
+A Tabela abaixo apresenta o valor-p do teste para os dados em que o tamanho da amostra nos dois grupos é maior que 25.
+Para o nível de significância $\alpha = 0.1$, temos evidência para rejeitar $H_0$ em um cursos, **Interdisciplinar em Ciência e Tecnologia**. Neles, a nota feminina é maior que a masculina. Na Tabela abaixo estão destacados em vermelho os p-valores significativos para o teste.
+
+```{r testest, echo=FALSE}
 # Testes de hipóteses para diferença de médias:
 
 # Teste t
-cursos_para_teste_t = data[data$n.x >= 25 & data$n.y >= 25, ]$curso
+cursos_para_teste_t = data[data$n.x >= 20 & data$n.y >= 20, ]$curso
 
 p_valores_t = c(0,0,0,0,0)
 
@@ -123,13 +251,39 @@ for(i in cursos_para_teste_t){
 
 p_valores_t = p_valores_t[-1, ]
 rownames(p_valores_t) = cursos_para_teste_t
-colnames(p_valores_t) = c("Média Homens", "N Homens", "Média Mulheres", "N Mulheres", "Valor p")
+colnames(p_valores_t) = c("Media_Homens", "N_Homens", "Media_Mulheres", "N_Mulheres", "Valor_p")
+p_valores_t = round(p_valores_t, 3)
 
-p_valores_t
+dataframe_p_valores_t = p_valores_t %>% as.data.frame(.,row.names=cursos_para_teste_t)
+
+dataframe_p_valores_t = dataframe_p_valores_t  %>% mutate(
+                       Media_Homens = cell_spec(Media_Homens, "html"),
+                       N_Homens = cell_spec(N_Homens, "html"),
+                       Media_Mulheres = cell_spec(Media_Mulheres, "html"),
+                       N_Mulheres = cell_spec(N_Mulheres, "html"),
+                       Valor_p = cell_spec(Valor_p, "html",
+                                             color = ifelse(Valor_p < 0.1, "white", "white"),
+                                           background = ifelse(Valor_p < 0.1, "red", "blue"))
+                       ) 
+rownames(dataframe_p_valores_t) = cursos_para_teste_t
+dataframe_p_valores_t %>%
+  kable(format = "html", escape = F, row.names = TRUE, align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "bordered"), full_width = F)
+```
+</center>
+***
 
 # Teste de Mann-Whitney
 
-cursos_para_teste_mw = data[(data$n.x <= 25 & data$n.x >= 8) & (data$n.y <= 25 & data$n.y >= 8), ]$curso
+Nos casos em que o tamanho das amostras é pequeno e não sabemos se elas são oriundas de uma distribuição Normal, o teste t de Student não é aplicável. Utilizaremos, portanto, o teste não-paramétrico de Mann-Whitney, cuja hipótese nula é de que é igualmente provável que um valor aleatoriamente selecionado de uma amostra A será menor ou maior do que um valor aleatoriamente retirado de uma amostra B. Estamos interessados em testar se uma das distribuições tende a ter valores maiores do que outra, ou ainda, se elas possuem a mesma mediana.
+
+Este teste apresenta uma vantagem em relação ao teste t, a saber, ele é baseado no _rank_ dos dados, o que reduz a influência de _outliers_ na amostra. A sua estatística de teste possui uma distribuição exata para amostras pequenas, mas também pode ser aproximada pela distribuição Normal, no caso de amostras grandes. Seguem os resultados para testar a hipótese de que a distribuição do IRA masculino apresenta locação igual à distribuição do IRA feminino. O único caso em que a hipótese de igualdade nas medianas das distribuições foi rejeitada ao nível de $\alpha = 0.1$ ocorreu no curso de **Direito**, **Engenharia Civil**, **Interdisciplinar em Ciência e Tecnologia**, em que as mulheres apresentam melhor desempenho.  
+
+<center>
+```{r testesmw, echo=FALSE, warning=FALSE}
+# Teste de Mann-Whitney
+
+cursos_para_teste_mw = data[data$n.y >= 8 & data$n.x >= 8, ]$curso
 
 p_valores_mw = c(0,0,0)
 
@@ -138,22 +292,42 @@ for(i in cursos_para_teste_mw){
   curso_F = filter(ingressantes2017nota_F, curso == i)
   
   rr = wilcox.test(as.numeric(curso_M$ira),as.numeric(curso_F$ira))
-  p_valores_mw = rbind(p_valores_mw, c(as.numeric(curso_M$ira) %>% mean,
+  p_valores_mw = rbind(p_valores_mw, c(as.numeric(curso_M$ira) %>% median,
                                       nrow(curso_M),
-                                      as.numeric(curso_F$ira) %>% mean, 
+                                      as.numeric(curso_F$ira) %>% median, 
                                       nrow(curso_F),
                                       rr$p.value))
 }
 
 p_valores_mw = p_valores_mw[-1, ]
 rownames(p_valores_mw) = cursos_para_teste_mw
-colnames(p_valores_mw) = c("Média Homens", "N Homens", "Média Mulheres", "N Mulheres", "Valor p")
-p_valores_mw
+colnames(p_valores_mw) = c("Mediana_Homens", "N_Homens", "Mediana_Mulheres", "N_Mulheres", "Valor_p")
 
-# Tabelas para o Rmarkdown
+p_valores_mw = round(p_valores_mw, 3)
 
-knitr::kable(p_valores_t, "markdown")
-knitr::kable(p_valores_mw, "markdown")
+dataframe_p_valores_mw = p_valores_mw %>% as.data.frame(.,row.names=cursos_para_teste_mw)
 
+dataframe_p_valores_mw = dataframe_p_valores_mw  %>% mutate(
+                       Mediana_Homens = cell_spec(Mediana_Homens, "html"),
+                       N_Homens = cell_spec(N_Homens, "html"),
+                       Mediana_Mulheres = cell_spec(Mediana_Mulheres, "html"),
+                       N_Mulheres = cell_spec(N_Mulheres, "html"),
+                       Valor_p = cell_spec(Valor_p, "html",
+                                             color = ifelse(Valor_p < 0.1, "white", "white"),
+                                           background = ifelse(Valor_p < 0.1, "red", "blue"))
+                       ) 
+rownames(dataframe_p_valores_mw) = cursos_para_teste_mw
+dataframe_p_valores_mw %>%
+  kable(format = "html", escape = F, row.names = TRUE, align = "c") %>%
+  kable_styling(bootstrap_options = c("striped", "hover", "condensed", "bordered"), full_width = F)
 ```
+</center>
 
+***
+
+# Conclusão
+
+Vemos que, nos 19 cursos em que o tamanho da amostra permitiu a utilização de testes de hipóteses, houve diferença estatisticamente significativa em 3 cursos: **Direito**, **Engenharia Civil**, **Interdisciplinar em Ciência e Tecnologia**, ao nível $\alpha = 0.1$. 
+
+Nos outros casos, não há evidência significativa de que os desempenhos de homens e mulheres matriculados ativos em 2017, avaliados pelo IRA, apresentam diferença.
+O estudo poderá ser mais abrangente com a chegada de dados mais robustos. Cursos como as Engenharias da Computação, de Petróleo e Ambiental possuem pouquíssimos alunos presentes nestes dados. Além disso, há cursos que apresentam, dentro desta amostra, grande diferença entre o número de matriculados ativos do sexo masculino e feminino: Ciência da Computação, Sistemas de Informação, Engenharia Elétrica, Interdisciplinar em Tecnologia da Informação. Outros cursos     
