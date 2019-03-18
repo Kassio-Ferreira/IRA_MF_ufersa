@@ -13,10 +13,9 @@ ingressantes2017nota_F <- read.csv("C:/Users/erica.santos/workspace/trabalho/THE
                                    header = TRUE, sep=";", colClasses = c("character"))
 
 
-ingressantes2017nota_M <- filter(ingressantes2017nota_M, startsWith(ingressantes2017nota_M$matricula, '2017'))
-ingressantes2017nota_F <- filter(ingressantes2017nota_F, startsWith(ingressantes2017nota_F$matricula, '2017'))
-
-iris %>% group_by(Species) %>% summarise(avg = mean(Sepal.Length))
+ingressantes2017nota_M <- filter(ingressantes2017nota_M, startsWith(ingressantes2017nota_M$matricula, '2017') & ingressantes2017nota_M$status == 'ATIVO')
+ingressantes2017nota_F <- filter(ingressantes2017nota_F, startsWith(ingressantes2017nota_F$matricula, '2017') & ingressantes2017nota_F$status == 'ATIVO')
+print("teste")
 
 # Notas médias dos cursos masculino
 
